@@ -29,8 +29,12 @@
         <el-table-column prop="order_price" label="订单价格" width="180">
         </el-table-column>
         <el-table-column prop="order_pay" label="是否付款">
-          <el-tag v-if="order_pay === '1'" type="success">已付款</el-tag>
-          <el-tag v-else type="danger">未付款</el-tag>
+          <template v-slot="scope">
+            <el-tag v-if="scope.row.order_pay === '1'" type="success"
+              >已付款</el-tag
+            >
+            <el-tag v-else type="danger">未付款</el-tag>
+          </template>
         </el-table-column>
         <el-table-column prop="is_send" label="是否发货"> </el-table-column>
         <el-table-column prop="create_time" label="下单时间">
@@ -54,6 +58,17 @@
           </template>
         </el-table-column>
       </el-table>
+      <!-- 分页区域 -->
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryinfo.pagenum"
+        :page-sizes="[3, 5, 10, 20]"
+        :page-size="queryinfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="total"
+      >
+      </el-pagination>
     </el-card>
     <!-- 编辑订单对话框 -->
     <el-dialog
@@ -118,6 +133,16 @@ export default {
 
       // 显示编辑对话框
       this.showEditOrdersDialogVisible = true
+    },
+    // 页面显示条数变化
+    handleSizeChange(newsize) {
+      this.queryinfo.pagesize = newsize
+      this.getOrdersList()
+    },
+    // 换页触发
+    handleCurrentChange(newnum) {
+      this.queryinfo.pagenum = newnum
+      this.getOrdersList()
     }
   },
   watch: {}

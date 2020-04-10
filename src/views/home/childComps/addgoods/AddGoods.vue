@@ -304,43 +304,48 @@ export default {
       this.addForm.pics.push(picObj)
     },
     // 添加商品
-    async addGoods() {
-      // 准备添加所需要的各种数据
-      // 1.需要将goods_cat转为字符串形式
-      // 2.由于前面级联选择器双向数据绑定着goods_cat,所以需要进行深拷贝后才能进行数据的改造
-      // lodash插件
-      const isokForm = _.cloneDeep(this.addForm)
-      isokForm.goods_cat = isokForm.goods_cat.join(',')
-      console.log(isokForm)
+    addGoods() {
+      // 先进行表单的预验证
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) return this.$message.info('请输入必要的表单项')
+        // 验证通过
+        // 准备添加所需要的各种数据
+        // 1.需要将goods_cat转为字符串形式
+        // 2.由于前面级联选择器双向数据绑定着goods_cat,所以需要进行深拷贝后才能进行数据的改造
+        // lodash插件
+        const isokForm = _.cloneDeep(this.addForm)
+        isokForm.goods_cat = isokForm.goods_cat.join(',')
+        console.log(isokForm)
 
-      // 达到attrs参数的要求
-      // 先准备一个数组
-      const attrs = []
-      // 遍历manyData
-      this.manyData.forEach(item => {
-        const obj = {}
-        obj.attr_id = item.attr_id
-        obj.attr_value = item.attr_vals.join(' ')
-        // 将该对象push到数组attrs中
-        attrs.push(obj)
-      })
+        // 达到attrs参数的要求
+        // 先准备一个数组
+        const attrs = []
+        // 遍历manyData
+        this.manyData.forEach(item => {
+          const obj = {}
+          obj.attr_id = item.attr_id
+          obj.attr_value = item.attr_vals.join(' ')
+          // 将该对象push到数组attrs中
+          attrs.push(obj)
+        })
 
-      // 遍历onlyData
-      this.onlyData.forEach(i => {
-        const obj = {}
-        obj.attr_id = i.attr_id
-        obj.attr_value = i.attr_vals
-        attrs.push(obj)
+        // 遍历onlyData
+        this.onlyData.forEach(i => {
+          const obj = {}
+          obj.attr_id = i.attr_id
+          obj.attr_value = i.attr_vals
+          attrs.push(obj)
+        })
+        // console.log(attrs)
+        isokForm.attrs = attrs
+        // 发送请求添加商品
+        const { data: res } = await addGoodsRequest(isokForm)
+        if (res.meta.status !== 201) return this.$message.error('添加商品失败')
+        // 添加商品成功
+        this.$message.success('添加商品成功')
+        // 跳抓到商品列表页面
+        this.$router.push('/goods')
       })
-      // console.log(attrs)
-      isokForm.attrs = attrs
-      // 发送请求添加商品
-      const { data: res } = await addGoodsRequest(isokForm)
-      if (res.meta.status !== 201) return this.$message.error('添加商品失败')
-      // 添加商品成功
-      this.$message.success('添加商品成功')
-      // 跳抓到商品列表页面
-      this.$router.push('/goods')
     }
   },
   watch: {}
@@ -357,9 +362,6 @@ export default {
   width: 100%;
 }
 .quill-editor-content {
-  height: 300px !important;
-}
-.addGoods {
-  margin-top: 20px;
+  min-height: 300px !important;
 }
 </style>
