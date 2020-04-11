@@ -8,3 +8,10 @@ export const getOrdersList = (queryinfo) => {
     params: queryinfo
   })
 }
+
+// 获取物流信息
+export const getLogisticsInfo = (id) => {
+  return request({
+    url: `/kuaidi/${id}`
+  })
+}

@@ -24,3 +24,7 @@ body,
 .el-pagination {
   margin-top: 10px;
 }
+
+.el-cascader-panel {
+  height: 250px;
+}
