@@ -36,3 +36,20 @@ export const removeUserById = (userId) => {
     method: 'delete'
   })
 }
+// 修改用户状态
+export const toggleUserState = (row) => {
+  return request({
+    url: `users/${row.id}/state/${row.mg_state}`,
+    method: 'put'
+  })
+}
+// 分配用户角色
+export const allotUserRolesConfirm = (id, rid) => {
+  return request({
+    url: `users/${id}/role`,
+    method: 'put',
+    data: {
+      rid
+    }
+  })
+}

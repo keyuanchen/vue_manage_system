@@ -40,17 +40,18 @@
         <el-table-column prop="role_name" label="角色" width="180">
         </el-table-column>
         <el-table-column prop="mg_state" label="状态" width="180">
-          <template slot-scope="scope">
+          <template v-slot="scope">
             <el-switch
               v-model="scope.row.mg_state"
               active-color="#13ce66"
               inactive-color="#ff4949"
+              @change="toggleState(scope.row)"
             >
             </el-switch>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="220">
-          <template slot-scope="scope">
+          <template v-slot="scope">
             <el-button
               size="mini"
               type="primary"
@@ -75,6 +76,7 @@
                 size="mini"
                 type="warning"
                 icon="el-icon-setting"
+                @click="showAllotRoles(scope.row)"
               ></el-button>
             </el-tooltip>
           </template>
@@ -151,6 +153,41 @@
         <el-button type="primary" @click="editUserFormConfirm">确 定</el-button>
       </span>
     </el-dialog>
+    <!-- 分配角色对话框 -->
+    <el-dialog
+      title="分配角色"
+      :visible.sync="allotRolesDialogVisible"
+      width="50%"
+      @close="allotRolesDialogClosed"
+    >
+      <el-form>
+        <p>当前的用户：{{ userInfo.username }}</p>
+        <p>当前的角色：{{ roleName }}</p>
+        <el-form-item>
+          分配新角色：
+          <el-select
+            v-model="selectValue"
+            @change="valueChange"
+            placeholder="请选择角色"
+          >
+            <el-option
+              v-for="item in rolesList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            >
+            </el-option>
+          </el-select>
+        </el-form-item>
+      </el-form>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="allotRolesDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="allotUserRolesConfirm"
+          >确 定</el-button
+        >
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -160,8 +197,12 @@ import {
   addUserInfo,
   getUserInfoById,
   editUserInfo,
-  removeUserById
+  removeUserById,
+  toggleUserState,
+  allotUserRolesConfirm
 } from 'network/users'
+
+import { getRolesList } from 'network/roles'
 
 export default {
   name: '',
@@ -219,7 +260,17 @@ export default {
       editUserFormRules: {
         email: [{ validator: checkEmail, trigger: 'blur' }],
         mobile: [{ validator: checkMobile, trigger: 'blur' }]
-      }
+      },
+      // 分配角色对话框
+      allotRolesDialogVisible: false,
+      // 保存单个用户信息
+      userInfo: {},
+      // 当前用户的角色
+      roleName: '',
+      // 所有角色数据
+      rolesList: [],
+      // 下拉框的值
+      selectValue: ''
     }
   },
   created() {
@@ -329,6 +380,63 @@ export default {
       this.$message.success('删除用户成功')
       // 刷新用户列表
       this.getUsersList()
+    },
+    // 修改用户状态
+    async toggleState(row) {
+      console.log(12345)
+      // 发送请求修改用户的状态
+      const { data: res } = await toggleUserState(row)
+      if (res.meta.status !== 200)
+        return this.$message.error('修改用户状态失败')
+      // 修改数据成功
+      this.$message.success('修改用户状态成功')
+    },
+    // 显示分配角色对话框
+    async showAllotRoles(r) {
+      // 当前用户的角色
+      this.roleName = r.role_name
+      // 获取用户信息
+      const { data: res } = await getUserInfoById(r.id)
+      if (res.meta.status !== 200) return this.$message.error('获取用户失败')
+      // 获取用户信息成功
+      this.$message.success('获取用户信息成功')
+      this.userInfo = res.data
+      console.log(this.userInfo)
+      // 获取到所有的角色
+      const { data: result } = await getRolesList()
+      if (result.meta.status !== 200) return
+
+      this.rolesList = result.data
+
+      // 分配角色对话框显示
+      this.allotRolesDialogVisible = true
+    },
+    // 下拉框选中项变化
+    valueChange(newValue) {
+      this.selectValue = newValue
+      console.log(this.selectValue)
+      console.log(this.userInfo.id)
+    },
+    // 分配角色对话框关闭
+    allotRolesDialogClosed() {
+      this.selectValue = ''
+    },
+    // 分配用户角色确认
+    async allotUserRolesConfirm() {
+      // 发送请求分配角色
+      const { data: res } = await allotUserRolesConfirm(
+        this.userInfo.id,
+        this.selectValue
+      )
+      if (res.meta.status !== 200)
+        return this.$message.error('分配用户角色失败')
+      // 分配角色成功
+      this.$message.success('分配角色成功')
+      // 刷新用户列表
+      this.getUsersList()
+
+      // 关闭对话框
+      this.allotRolesDialogVisible = false
     }
   },
   watch: {}

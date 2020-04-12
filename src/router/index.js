@@ -3,6 +3,12 @@ import VueRouter from 'vue-router'
 
 Vue.use(VueRouter)
 
+// 重写路由，解决重新跳转到当前页面的报错bug
+const VueRouterPush = VueRouter.prototype.push
+VueRouter.prototype.push = function push(to) {
+  return VueRouterPush.call(this, to).catch(err => err)
+}
+
 const Login = () => import('views/login/Login')
 const Home = () => import('views/home/Home')
 const Welcome = () => import('views/home/childComps/welcome/Welcome')
